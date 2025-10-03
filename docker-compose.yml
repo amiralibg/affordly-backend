@@ -17,14 +17,20 @@ services:
       - proxy-network
       - affordly-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
   mongodb:
-    image: mongo:7
+    image: mongo:4.4
     container_name: affordly-db
     expose:
       - "27017"
@@ -37,7 +43,7 @@ services:
     environment:
       - MONGO_INITDB_DATABASE=affordly
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,10 +54,8 @@ volumes:
   mongodb-logs:
 
 networks:
-  # Internal network for backend <-> mongodb communication
   affordly-network:
     driver: bridge
-  
-  # External network shared with Nginx
+
   proxy-network:
     external: true
