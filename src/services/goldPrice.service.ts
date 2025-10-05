@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-const GOLD_API_URL = 'https://BrsApi.ir/Api/Market/Gold_Currency.php';
-const GOLD_API_KEY = 'Bf7tdNXfVnzP3WJFWnhp1N3nQmMexqfz';
+const GOLD_API_URL = process.env.GOLD_API_URL || 'https://BrsApi.ir/Api/Market/Gold_Currency.php';
+const GOLD_API_KEY = process.env.GOLD_API_KEY;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+if (!GOLD_API_KEY) {
+  throw new Error('GOLD_API_KEY environment variable is not set');
+}
 
 interface GoldItem {
   date: string;

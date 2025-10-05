@@ -1,13 +1,13 @@
 services:
   backend:
     build: .
-    container_name: affordly-api
+    container_name: goldify-api
     expose:
       - "3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/affordly
+      - MONGODB_URI=mongodb://mongodb:27017/goldify
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
       mongodb:
@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     networks:
       - proxy-network
-      - affordly-network
+      - goldify-network
     healthcheck:
       test:
         [
@@ -31,7 +31,7 @@ services:
 
   mongodb:
     image: mongo:4.4
-    container_name: affordly-db
+    container_name: goldify-db
     expose:
       - "27017"
     volumes:
@@ -39,9 +39,9 @@ services:
       - mongodb-logs:/var/log/mongodb
     restart: unless-stopped
     networks:
-      - affordly-network
+      - goldify-network
     environment:
-      - MONGO_INITDB_DATABASE=affordly
+      - MONGO_INITDB_DATABASE=goldify
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -54,7 +54,7 @@ volumes:
   mongodb-logs:
 
 networks:
-  affordly-network:
+  goldify-network:
     driver: bridge
 
   proxy-network:

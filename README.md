@@ -1,6 +1,6 @@
-# Affordly Backend API
+# Goldify Backend API
 
-RESTful API for Affordly - A savings goal tracking application built with Node.js, Express, TypeScript, and MongoDB.
+RESTful API for Goldify - A savings goal tracking application built with Node.js, Express, TypeScript, and MongoDB.
 
 ## Features
 
@@ -41,7 +41,7 @@ cp .env.example .env
 3. Update the `.env` file with your configuration:
 ```env
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/affordly
+MONGODB_URI=mongodb://localhost:27017/goldify
 JWT_SECRET=your-secret-key-change-this-in-production
 NODE_ENV=development
 ```
@@ -139,6 +139,6 @@ backend/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | PORT | Server port | 3000 |
-| MONGODB_URI | MongoDB connection string | mongodb://localhost:27017/affordly |
+| MONGODB_URI | MongoDB connection string | mongodb://localhost:27017/goldify |
 | JWT_SECRET | Secret key for JWT signing | - |
 | NODE_ENV | Environment (development/production) | development |

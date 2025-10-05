@@ -5,16 +5,16 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Affordly API',
+      title: 'Goldify API',
       version: '1.0.0',
-      description: 'API documentation for Affordly - A savings goal tracking application',
+      description: 'API documentation for Goldify - A savings goal tracking application',
       contact: {
         name: 'API Support',
       },
     },
     servers: [
       {
-        url: 'https://affordly-api.amiralibg.xyz',
+        url: 'https://goldify-api.amiralibg.xyz',
         description: 'Production server',
       },
       {

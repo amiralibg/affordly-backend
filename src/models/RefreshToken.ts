@@ -45,7 +45,6 @@ const RefreshTokenSchema: Schema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
     },
     revokedAt: {
       type: Date,
