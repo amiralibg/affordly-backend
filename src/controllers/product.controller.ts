@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import Product from '../models/Product';
 import { AuthRequest } from '../middleware/auth';
+import { get18KGoldPrice, calculateGoldEquivalent } from '../services/goldPrice.service';
 
 export const getProducts = async (
   req: AuthRequest,
@@ -52,15 +53,20 @@ export const createProduct = async (
     }
 
     const userId = req.userId;
-    const { name, price, monthlySavings, isWishlisted, savedAmount } = req.body;
+    const { name, price, isWishlisted, savedGoldAmount } = req.body;
+
+    // Fetch current 18K gold price
+    const goldPrice = await get18KGoldPrice();
+    const goldEquivalent = calculateGoldEquivalent(price, goldPrice);
 
     const product = new Product({
       userId,
       name,
       price,
-      monthlySavings,
+      goldEquivalent,
+      goldPriceAtCreation: goldPrice,
       isWishlisted: isWishlisted || false,
-      savedAmount: savedAmount || 0,
+      savedGoldAmount: savedGoldAmount || 0,
     });
 
     await product.save();
@@ -96,13 +102,20 @@ export const updateProduct = async (
       return;
     }
 
-    const { name, price, monthlySavings, isWishlisted, savedAmount } = req.body;
+    const { name, price, isWishlisted, savedGoldAmount } = req.body;
 
     if (name !== undefined) product.name = name;
-    if (price !== undefined) product.price = price;
-    if (monthlySavings !== undefined) product.monthlySavings = monthlySavings;
+
+    // If price is updated, recalculate gold equivalent
+    if (price !== undefined) {
+      product.price = price;
+      const goldPrice = await get18KGoldPrice();
+      product.goldEquivalent = calculateGoldEquivalent(price, goldPrice);
+      product.goldPriceAtCreation = goldPrice;
+    }
+
     if (isWishlisted !== undefined) product.isWishlisted = isWishlisted;
-    if (savedAmount !== undefined) product.savedAmount = savedAmount;
+    if (savedGoldAmount !== undefined) product.savedGoldAmount = savedGoldAmount;
 
     await product.save();
 

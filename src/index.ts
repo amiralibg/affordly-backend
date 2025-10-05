@@ -7,6 +7,8 @@ import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import profileRoutes from './routes/profile.routes';
+import goldRoutes from "./routes/gold.routes";
+import adminRoutes from "./routes/admin.routes";
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -31,6 +33,8 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/profile', profileRoutes);
+app.use("/api/gold", goldRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

@@ -10,7 +10,6 @@ import mongoose, { Document, Schema } from 'mongoose';
  *         - userId
  *         - name
  *         - price
- *         - monthlySavings
  *       properties:
  *         id:
  *           type: string
@@ -23,16 +22,19 @@ import mongoose, { Document, Schema } from 'mongoose';
  *           description: Product name
  *         price:
  *           type: number
- *           description: Product price
- *         monthlySavings:
+ *           description: Product price in Toman
+ *         goldEquivalent:
  *           type: number
- *           description: Monthly savings amount
+ *           description: How many grams of 18K gold needed to buy this product
+ *         goldPriceAtCreation:
+ *           type: number
+ *           description: Price of 18K gold per gram when product was added
  *         isWishlisted:
  *           type: boolean
  *           description: Whether the product is in wishlist
- *         savedAmount:
+ *         savedGoldAmount:
  *           type: number
- *           description: Amount saved so far
+ *           description: Amount of gold (in grams) saved so far
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -42,9 +44,10 @@ export interface IProduct extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
   price: number;
-  monthlySavings: number;
+  goldEquivalent: number;
+  goldPriceAtCreation: number;
   isWishlisted: boolean;
-  savedAmount: number;
+  savedGoldAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,7 +70,12 @@ const ProductSchema: Schema = new Schema(
       required: true,
       min: 0,
     },
-    monthlySavings: {
+    goldEquivalent: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    goldPriceAtCreation: {
       type: Number,
       required: true,
       min: 0,
@@ -76,7 +84,7 @@ const ProductSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
-    savedAmount: {
+    savedGoldAmount: {
       type: Number,
       default: 0,
       min: 0,
