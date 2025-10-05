@@ -1,12 +1,15 @@
 import axios from 'axios';
 
 const GOLD_API_URL = process.env.GOLD_API_URL || 'https://BrsApi.ir/Api/Market/Gold_Currency.php';
-const GOLD_API_KEY = process.env.GOLD_API_KEY;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-if (!GOLD_API_KEY) {
-  throw new Error('GOLD_API_KEY environment variable is not set');
-}
+const getGoldApiKey = (): string => {
+  const apiKey = process.env.GOLD_API_KEY;
+  if (!apiKey) {
+    throw new Error('GOLD_API_KEY environment variable is not set');
+  }
+  return apiKey;
+};
 
 interface GoldItem {
   date: string;
@@ -44,7 +47,7 @@ export const fetchGoldPrices = async (): Promise<GoldItem[]> => {
   try {
     console.log('Fetching fresh gold prices from API');
     const response = await axios.get<GoldApiResponse>(GOLD_API_URL, {
-      params: { key: GOLD_API_KEY },
+      params: { key: getGoldApiKey() },
       timeout: 10000, // 10 second timeout
     });
 
