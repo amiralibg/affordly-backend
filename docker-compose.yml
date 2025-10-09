@@ -9,6 +9,8 @@ services:
       - PORT=3000
       - MONGODB_URI=mongodb://mongodb:27017/goldify
       - JWT_SECRET=${JWT_SECRET}
+      - GOLD_API_KEY=${GOLD_API_KEY}
+      - GOLD_API_URL=${GOLD_API_URL}
     depends_on:
       mongodb:
         condition: service_started
