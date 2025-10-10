@@ -29,6 +29,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IProfile extends Document {
   userId: mongoose.Types.ObjectId;
   monthlySalary: number;
+  monthlySavingsPercentage: number; // Percentage of salary to save (0-100)
   currency: string;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +48,12 @@ const ProfileSchema: Schema = new Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    monthlySavingsPercentage: {
+      type: Number,
+      default: 20, // Default to saving 20% of salary
+      min: 0,
+      max: 100,
     },
     currency: {
       type: String,

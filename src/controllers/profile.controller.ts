@@ -39,7 +39,7 @@ export const updateProfile = async (
     }
 
     const userId = req.userId;
-    const { monthlySalary, currency } = req.body;
+    const { monthlySalary, currency, monthlySavingsPercentage } = req.body;
 
     let profile = await Profile.findOne({ userId });
 
@@ -49,11 +49,13 @@ export const updateProfile = async (
         userId,
         monthlySalary: monthlySalary || 0,
         currency: currency || 'USD',
+        monthlySavingsPercentage: monthlySavingsPercentage || 20,
       });
     } else {
       // Update existing profile
       if (monthlySalary !== undefined) profile.monthlySalary = monthlySalary;
       if (currency !== undefined) profile.currency = currency;
+      if (monthlySavingsPercentage !== undefined) profile.monthlySavingsPercentage = monthlySavingsPercentage;
     }
 
     await profile.save();

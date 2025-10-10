@@ -9,7 +9,11 @@ import productRoutes from './routes/product.routes';
 import profileRoutes from './routes/profile.routes';
 import goldRoutes from "./routes/gold.routes";
 import adminRoutes from "./routes/admin.routes";
+import savingsLogRoutes from './routes/savingsLog.routes';
+import goldPriceHistoryRoutes from './routes/goldPriceHistory.routes';
 import { errorHandler } from './middleware/errorHandler';
+import { initializeCronJobs } from './services/cronJobs';
+import { storeTodayGoldPrice } from './services/goldPriceService';
 
 dotenv.config();
 
@@ -35,6 +39,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/profile', profileRoutes);
 app.use("/api/gold", goldRoutes);
 app.use("/api/admin", adminRoutes);
+app.use('/api/logs', savingsLogRoutes);
+app.use('/api/gold-history', goldPriceHistoryRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -43,6 +49,16 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Initialize cron jobs for daily tasks
+    initializeCronJobs();
+
+    // Store today's gold price on startup (if not already stored)
+    try {
+      await storeTodayGoldPrice();
+    } catch (error) {
+      console.log('⚠️  Could not store gold price on startup (may already exist)');
+    }
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

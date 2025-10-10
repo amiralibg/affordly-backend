@@ -1,8 +1,32 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import Product from '../models/Product';
+import Profile from '../models/Profile';
 import { AuthRequest } from '../middleware/auth';
 import { get18KGoldPrice, calculateGoldEquivalent } from '../services/goldPrice.service';
+import { calculateSavingsTimeline } from '../utils/savingsCalculator';
+
+// Helper function to enrich products with savings timeline
+const enrichProductWithTimeline = async (product: any, userId: string) => {
+  try {
+    const profile = await Profile.findOne({ userId });
+    if (!profile || profile.monthlySalary <= 0) {
+      return { ...product.toObject(), timeline: null };
+    }
+
+    const timeline = calculateSavingsTimeline(
+      product.price,
+      product.goldEquivalent,
+      profile.monthlySalary,
+      profile.monthlySavingsPercentage,
+      product.savedGoldAmount
+    );
+
+    return { ...product.toObject(), timeline };
+  } catch (error) {
+    return { ...product.toObject(), timeline: null };
+  }
+};
 
 export const getProducts = async (
   req: AuthRequest,
@@ -12,7 +36,12 @@ export const getProducts = async (
     const userId = req.userId;
     const products = await Product.find({ userId }).sort({ createdAt: -1 });
 
-    res.status(200).json({ products });
+    // Enrich products with timeline data
+    const enrichedProducts = await Promise.all(
+      products.map((product) => enrichProductWithTimeline(product, userId!))
+    );
+
+    res.status(200).json({ products: enrichedProducts });
   } catch (error: any) {
     console.error('GetProducts error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -189,7 +218,12 @@ export const getWishlistedProducts = async (
       createdAt: -1,
     });
 
-    res.status(200).json({ products });
+    // Enrich products with timeline data
+    const enrichedProducts = await Promise.all(
+      products.map((product) => enrichProductWithTimeline(product, userId!))
+    );
+
+    res.status(200).json({ products: enrichedProducts });
   } catch (error: any) {
     console.error('GetWishlistedProducts error:', error);
     res.status(500).json({ error: 'Failed to fetch wishlisted products' });
