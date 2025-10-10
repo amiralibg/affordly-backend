@@ -1,16 +1,16 @@
-import axios from 'axios';
-import GoldPriceHistory from '../models/GoldPriceHistory';
+import axios from "axios";
+import GoldPriceHistory from "../models/GoldPriceHistory";
+import { get18KGoldPrice } from "./goldPrice.service";
 
 /**
  * Fetch current gold price from TGJU API
  */
 export const fetchCurrentGoldPrice = async (): Promise<number> => {
   try {
-    const response = await axios.get('https://api.tgju.org/v1/market/indicator/summary-table-data/geram18');
-    const price = response.data?.geram18?.p || 0;
+    const price = await get18KGoldPrice();
     return price;
   } catch (error: any) {
-    console.error('Error fetching gold price from TGJU:', error.message);
+    console.error('Error fetching gold price from BrsApi:', error.message);
     throw new Error('Failed to fetch gold price');
   }
 };
@@ -29,28 +29,38 @@ export const storeTodayGoldPrice = async (): Promise<void> => {
     const existingPrice = await GoldPriceHistory.findOne({ date: today });
 
     if (existingPrice) {
-      console.log(`Gold price for ${today.toISOString().split('T')[0]} already exists: ${existingPrice.price} Toman`);
+      console.log(
+        `Gold price for ${today.toISOString().split("T")[0]} already exists: ${
+          existingPrice.price
+        } Toman`
+      );
       return;
     }
 
     // Fetch current price
     const currentPrice = await fetchCurrentGoldPrice();
 
+    console.log(`Fetched current gold price: ${currentPrice} Toman`);
+
     if (!currentPrice || currentPrice <= 0) {
-      throw new Error('Invalid gold price received');
+      throw new Error("Invalid gold price received");
     }
 
     // Store new price record
     const priceRecord = new GoldPriceHistory({
       price: currentPrice,
       date: today,
-      source: 'tgju.org',
+      source: "tgju.org",
     });
 
     await priceRecord.save();
-    console.log(`✅ Stored gold price for ${today.toISOString().split('T')[0]}: ${currentPrice} Toman`);
+    console.log(
+      `✅ Stored gold price for ${
+        today.toISOString().split("T")[0]
+      }: ${currentPrice} Toman`
+    );
   } catch (error: any) {
-    console.error('Error storing gold price:', error.message);
+    console.error("Error storing gold price:", error.message);
     throw error;
   }
 };
@@ -72,14 +82,14 @@ export const getGoldPriceHistory = async (
     })
       .sort({ date: 1 }) // Ascending order (oldest first)
       .limit(limit)
-      .select('date price -_id');
+      .select("date price -_id");
 
-    return prices.map(p => ({
+    return prices.map((p) => ({
       date: p.date,
       price: p.price,
     }));
   } catch (error: any) {
-    console.error('Error fetching gold price history:', error.message);
+    console.error("Error fetching gold price history:", error.message);
     throw error;
   }
 };
@@ -88,7 +98,9 @@ export const getGoldPriceHistory = async (
  * Seed historical data (for testing purposes)
  * Generates fake but realistic price data for the past N days
  */
-export const seedHistoricalPrices = async (days: number = 30): Promise<void> => {
+export const seedHistoricalPrices = async (
+  days: number = 30
+): Promise<void> => {
   try {
     console.log(`Seeding ${days} days of historical gold price data...`);
 
@@ -99,7 +111,7 @@ export const seedHistoricalPrices = async (days: number = 30): Promise<void> => 
         basePrice = currentPrice;
       }
     } catch {
-      console.log('Using default base price for seeding');
+      console.log("Using default base price for seeding");
     }
 
     const today = new Date();
@@ -122,7 +134,7 @@ export const seedHistoricalPrices = async (days: number = 30): Promise<void> => 
       const priceRecord = new GoldPriceHistory({
         price: dayPrice,
         date,
-        source: 'seeded',
+        source: "seeded",
       });
 
       await priceRecord.save();
@@ -130,7 +142,7 @@ export const seedHistoricalPrices = async (days: number = 30): Promise<void> => 
 
     console.log(`✅ Seeded ${days} days of historical prices`);
   } catch (error: any) {
-    console.error('Error seeding historical prices:', error.message);
+    console.error("Error seeding historical prices:", error.message);
     throw error;
   }
 };
