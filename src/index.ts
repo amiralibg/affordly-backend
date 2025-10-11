@@ -7,8 +7,8 @@ import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import profileRoutes from './routes/profile.routes';
-import goldRoutes from "./routes/gold.routes";
-import adminRoutes from "./routes/admin.routes";
+import goldRoutes from './routes/gold.routes';
+import adminRoutes from './routes/admin.routes';
 import savingsLogRoutes from './routes/savingsLog.routes';
 import goldPriceHistoryRoutes from './routes/goldPriceHistory.routes';
 import { errorHandler } from './middleware/errorHandler';
@@ -37,12 +37,12 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/profile', profileRoutes);
-app.use("/api/gold", goldRoutes);
-app.use("/api/admin", adminRoutes);
+app.use('/api/gold', goldRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/logs', savingsLogRoutes);
 app.use('/api/gold-history', goldPriceHistoryRoutes);
 
-// Error handler (must be last)
+// Error handler
 app.use(errorHandler);
 
 // Connect to database and start server
@@ -53,10 +53,10 @@ const startServer = async () => {
     // Initialize cron jobs for daily tasks
     initializeCronJobs();
 
-    // Store today's gold price on startup (if not already stored)
+    // Store today's gold price on startup
     try {
       await storeTodayGoldPrice();
-    } catch (error) {
+    } catch {
       console.log('⚠️  Could not store gold price on startup (may already exist)');
     }
 
@@ -64,10 +64,10 @@ const startServer = async () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
 };
 
-startServer();
+void startServer();

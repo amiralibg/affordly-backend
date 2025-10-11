@@ -8,10 +8,7 @@ import {
 /**
  * Get historical gold prices
  */
-export const getGoldPriceHistoryController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getGoldPriceHistoryController = async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate, days, limit } = req.query;
 
@@ -46,7 +43,7 @@ export const getGoldPriceHistoryController = async (
       startDate: start,
       endDate: end,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetGoldPriceHistory error:', error);
     res.status(500).json({ error: 'Failed to fetch gold price history' });
   }
@@ -56,14 +53,11 @@ export const getGoldPriceHistoryController = async (
  * Manually trigger storing today's gold price
  * (Admin/testing endpoint)
  */
-export const storeTodayPriceController = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+export const storeTodayPriceController = async (_req: Request, res: Response): Promise<void> => {
   try {
     await storeTodayGoldPrice();
     res.status(200).json({ message: 'Gold price stored successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('StoreTodayPrice error:', error);
     res.status(500).json({ error: 'Failed to store gold price' });
   }
@@ -85,7 +79,7 @@ export const seedHistoricalPricesController = async (
     res.status(200).json({
       message: `Seeded ${numDays} days of historical gold prices`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('SeedHistoricalPrices error:', error);
     res.status(500).json({ error: 'Failed to seed historical prices' });
   }

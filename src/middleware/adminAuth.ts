@@ -33,7 +33,7 @@ export const requireAdmin = async (
     }
 
     next();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Admin auth error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

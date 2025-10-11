@@ -3,17 +3,11 @@ import { validationResult } from 'express-validator';
 import Profile from '../models/Profile';
 import { AuthRequest } from '../middleware/auth';
 
-export const getProfile = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
 
-    const profile = await Profile.findOne({ userId }).populate(
-      'userId',
-      'name email'
-    );
+    const profile = await Profile.findOne({ userId }).populate('userId', 'name email');
 
     if (!profile) {
       res.status(404).json({ error: 'Profile not found' });
@@ -21,16 +15,13 @@ export const getProfile = async (
     }
 
     res.status(200).json({ profile });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetProfile error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 };
 
-export const updateProfile = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -39,7 +30,11 @@ export const updateProfile = async (
     }
 
     const userId = req.userId;
-    const { monthlySalary, currency, monthlySavingsPercentage } = req.body;
+    const { monthlySalary, currency, monthlySavingsPercentage } = req.body as {
+      monthlySalary?: number;
+      currency?: string;
+      monthlySavingsPercentage?: number;
+    };
 
     let profile = await Profile.findOne({ userId });
 
@@ -47,15 +42,21 @@ export const updateProfile = async (
       // Create profile if it doesn't exist
       profile = new Profile({
         userId,
-        monthlySalary: monthlySalary || 0,
+        monthlySalary: Number(monthlySalary || 0),
         currency: currency || 'USD',
-        monthlySavingsPercentage: monthlySavingsPercentage || 20,
+        monthlySavingsPercentage: Number(monthlySavingsPercentage || 20),
       });
     } else {
       // Update existing profile
-      if (monthlySalary !== undefined) profile.monthlySalary = monthlySalary;
-      if (currency !== undefined) profile.currency = currency;
-      if (monthlySavingsPercentage !== undefined) profile.monthlySavingsPercentage = monthlySavingsPercentage;
+      if (monthlySalary !== undefined) {
+        profile.monthlySalary = Number(monthlySalary);
+      }
+      if (currency !== undefined) {
+        profile.currency = currency;
+      }
+      if (monthlySavingsPercentage !== undefined) {
+        profile.monthlySavingsPercentage = Number(monthlySavingsPercentage);
+      }
     }
 
     await profile.save();
@@ -64,7 +65,7 @@ export const updateProfile = async (
       message: 'Profile updated successfully',
       profile,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('UpdateProfile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
   }

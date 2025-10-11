@@ -26,8 +26,8 @@ interface GoldItem {
 
 interface GoldApiResponse {
   gold: GoldItem[];
-  currency: any[];
-  cryptocurrency: any[];
+  currency: unknown[];
+  cryptocurrency: unknown[];
 }
 
 interface CachedGoldData {
@@ -60,8 +60,9 @@ export const fetchGoldPrices = async (): Promise<GoldItem[]> => {
     };
 
     return goldData;
-  } catch (error: any) {
-    console.error('Failed to fetch gold prices:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Failed to fetch gold prices:', errorMessage);
 
     // If we have cached data (even if expired), return it
     if (goldPriceCache) {

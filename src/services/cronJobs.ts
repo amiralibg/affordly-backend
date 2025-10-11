@@ -10,13 +10,15 @@ export const initializeCronJobs = () => {
   // We'll run it at 5:30 UTC which is 9:00 AM Iran time
   const dailyGoldPriceJob = cron.schedule(
     '30 5 * * *', // Every day at 05:30 UTC (09:00 Iran time)
-    async () => {
-      console.log('⏰ Running daily gold price collection...');
-      try {
-        await storeTodayGoldPrice();
-      } catch (error) {
-        console.error('❌ Failed to store daily gold price:', error);
-      }
+    () => {
+      void (async () => {
+        console.log('⏰ Running daily gold price collection...');
+        try {
+          await storeTodayGoldPrice();
+        } catch (error) {
+          console.error('❌ Failed to store daily gold price:', error);
+        }
+      })();
     }
   );
 
@@ -31,7 +33,7 @@ export const initializeCronJobs = () => {
 /**
  * Stop all cron jobs (useful for graceful shutdown)
  */
-export const stopCronJobs = (jobs: { dailyGoldPriceJob: cron.ScheduledTask }) => {
-  jobs.dailyGoldPriceJob.stop();
+export const stopCronJobs = (jobs: { dailyGoldPriceJob: cron.ScheduledTask }): void => {
+  void jobs.dailyGoldPriceJob.stop();
   console.log('⏹️  All cron jobs stopped');
 };

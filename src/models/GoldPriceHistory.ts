@@ -63,7 +63,4 @@ GoldPriceHistorySchema.index({ date: 1 }, { unique: true });
 // Index for efficient date range queries
 GoldPriceHistorySchema.index({ date: -1 });
 
-export default mongoose.model<IGoldPriceHistory>(
-  'GoldPriceHistory',
-  GoldPriceHistorySchema
-);
+export default mongoose.model<IGoldPriceHistory>('GoldPriceHistory', GoldPriceHistorySchema);

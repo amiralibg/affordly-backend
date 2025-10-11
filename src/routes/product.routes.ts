@@ -209,10 +209,7 @@ router.post(
 router.put(
   '/:id',
   [
-    body('price')
-      .optional()
-      .isFloat({ min: 0 })
-      .withMessage('Price must be a positive number'),
+    body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
     body('savedGoldAmount')
       .optional()
       .isFloat({ min: 0 })

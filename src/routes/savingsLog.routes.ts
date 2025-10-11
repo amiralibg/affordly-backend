@@ -69,10 +69,7 @@ router.post(
       .optional()
       .isIn(['money', 'gold'])
       .withMessage('Type must be either money or gold'),
-    body('productId')
-      .optional()
-      .isMongoId()
-      .withMessage('Invalid product ID'),
+    body('productId').optional().isMongoId().withMessage('Invalid product ID'),
     body('note')
       .optional()
       .isString()

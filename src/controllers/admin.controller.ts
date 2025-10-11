@@ -3,16 +3,18 @@ import User from '../models/User';
 import Product from '../models/Product';
 import RefreshToken from '../models/RefreshToken';
 import { AuthRequest } from '../middleware/auth';
+import { FilterQuery } from 'mongoose';
+import { IUser } from '../models/User';
 
 export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 20, search } = req.query;
-    const query: any = {};
+    const query: FilterQuery<IUser> = {};
 
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        { name: { $regex: search as string, $options: 'i' } },
+        { email: { $regex: search as string, $options: 'i' } },
       ];
     }
 
@@ -32,7 +34,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
         pages: Math.ceil(total / Number(limit)),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetAllUsers error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
@@ -64,7 +66,7 @@ export const getUserDetails = async (req: AuthRequest, res: Response): Promise<v
       },
       sessions: activeSessions,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetUserDetails error:', error);
     res.status(500).json({ error: 'Failed to fetch user details' });
   }
@@ -98,7 +100,7 @@ export const toggleUserStatus = async (req: AuthRequest, res: Response): Promise
         isActive: user.isActive,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('ToggleUserStatus error:', error);
     res.status(500).json({ error: 'Failed to update user status' });
   }
@@ -125,7 +127,7 @@ export const promoteToAdmin = async (req: AuthRequest, res: Response): Promise<v
         role: user.role,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('PromoteToAdmin error:', error);
     res.status(500).json({ error: 'Failed to promote user' });
   }
@@ -161,7 +163,7 @@ export const getSecurityInsights = async (req: AuthRequest, res: Response): Prom
       suspiciousSessions,
       recentLogins,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetSecurityInsights error:', error);
     res.status(500).json({ error: 'Failed to fetch security insights' });
   }
@@ -194,7 +196,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
         active: activeSessions,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetDashboardStats error:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
   }

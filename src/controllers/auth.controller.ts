@@ -3,26 +3,30 @@ import { validationResult } from 'express-validator';
 import User from '../models/User';
 import Profile from '../models/Profile';
 import RefreshToken, { DeviceInfo } from '../models/RefreshToken';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  getRefreshTokenExpiryDate,
-  verifyAccessToken
-} from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, getRefreshTokenExpiryDate } from '../utils/jwt';
 import { AuthRequest } from '../middleware/auth';
+
+interface DeviceInfoRequest {
+  deviceId?: string;
+  deviceName?: string;
+  platform?: string;
+  appVersion?: string;
+  osVersion?: string;
+}
 
 // Helper to extract device and security info
 const getDeviceInfo = (req: Request): DeviceInfo => {
-  const deviceId = req.body.deviceId || req.headers['x-device-id'] || 'unknown';
-  const deviceName = req.body.deviceName || req.headers['x-device-name'] || 'Unknown Device';
-  const platform = req.body.platform || req.headers['x-platform'] || 'web';
-  const appVersion = req.body.appVersion || req.headers['x-app-version'];
-  const osVersion = req.body.osVersion || req.headers['x-os-version'];
+  const body = req.body as DeviceInfoRequest;
+  const deviceId = String(body.deviceId || req.headers['x-device-id'] || 'unknown');
+  const deviceName = String(body.deviceName || req.headers['x-device-name'] || 'Unknown Device');
+  const platform = String(body.platform || req.headers['x-platform'] || 'web');
+  const appVersion = body.appVersion || req.headers['x-app-version'];
+  const osVersion = body.osVersion || req.headers['x-os-version'];
 
   return {
-    deviceId: String(deviceId),
-    deviceName: String(deviceName),
-    platform: String(platform) as 'ios' | 'android' | 'web',
+    deviceId,
+    deviceName,
+    platform: platform as 'ios' | 'android' | 'web',
     appVersion: appVersion ? String(appVersion) : undefined,
     osVersion: osVersion ? String(osVersion) : undefined,
   };
@@ -30,7 +34,7 @@ const getDeviceInfo = (req: Request): DeviceInfo => {
 
 const getSecurityInfo = (req: Request) => {
   return {
-    ipAddress: req.ip || req.headers['x-forwarded-for'] as string,
+    ipAddress: req.ip || (req.headers['x-forwarded-for'] as string),
     userAgent: req.headers['user-agent'],
     lastUsedAt: new Date(),
     usageCount: 1,
@@ -39,7 +43,10 @@ const getSecurityInfo = (req: Request) => {
 };
 
 // Check for suspicious activity
-const detectSuspiciousActivity = async (userId: string, deviceInfo: DeviceInfo): Promise<boolean> => {
+const detectSuspiciousActivity = async (
+  userId: string,
+  _deviceInfo: DeviceInfo
+): Promise<boolean> => {
   // Check if there are too many active tokens from different devices
   const activeTokens = await RefreshToken.find({
     userId,
@@ -58,7 +65,7 @@ const detectSuspiciousActivity = async (userId: string, deviceInfo: DeviceInfo):
     createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) }, // Last hour
   });
 
-  const uniqueDevices = new Set(recentTokens.map(t => t.deviceInfo.deviceId));
+  const uniqueDevices = new Set(recentTokens.map((t) => t.deviceInfo.deviceId));
   if (uniqueDevices.size > 3) {
     return true;
   }
@@ -74,7 +81,11 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { email, password, name } = req.body;
+    const { email, password, name } = req.body as {
+      email: string;
+      password: string;
+      name: string;
+    };
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -92,7 +103,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 
     await user.save();
 
-    // Create profile for the user (optional - can be removed if not needed)
+    // Create profile for the user
     const profile = new Profile({
       userId: user._id,
     });
@@ -133,7 +144,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       accessToken,
       refreshToken: refreshTokenString,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('SignUp error:', error);
     res.status(500).json({ error: 'Failed to create user' });
   }
@@ -147,12 +158,12 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { email, password } = req.body;
+    const { email, password } = req.body as { email: string; password: string };
 
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials - User Not Found' });
       return;
     }
 
@@ -163,9 +174,9 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await user.comparePassword(String(password));
     if (!isPasswordValid) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials - Password is Wrong' });
       return;
     }
 
@@ -220,7 +231,7 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
       refreshToken: refreshTokenString,
       warning: isSuspicious ? 'Suspicious activity detected' : undefined,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('SignIn error:', error);
     res.status(500).json({ error: 'Failed to sign in' });
   }
@@ -228,7 +239,7 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
 
 export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.body as { refreshToken: string };
 
     if (!refreshToken) {
       res.status(400).json({ error: 'Refresh token is required' });
@@ -262,7 +273,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
     // Update security info
     storedToken.securityInfo.lastUsedAt = new Date();
     storedToken.securityInfo.usageCount += 1;
-    storedToken.securityInfo.ipAddress = req.ip || req.headers['x-forwarded-for'] as string;
+    storedToken.securityInfo.ipAddress = req.ip || (req.headers['x-forwarded-for'] as string);
 
     // REFRESH TOKEN ROTATION: Generate new refresh token
     const newRefreshTokenString = generateRefreshToken();
@@ -300,7 +311,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       accessToken,
       refreshToken: newRefreshTokenString, // Return new refresh token
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('RefreshToken error:', error);
     res.status(500).json({ error: 'Failed to refresh token' });
   }
@@ -308,7 +319,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.body as { refreshToken: string };
 
     if (!refreshToken) {
       res.status(400).json({ error: 'Refresh token is required' });
@@ -325,7 +336,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.status(200).json({ message: 'Logged out successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Logout error:', error);
     res.status(500).json({ error: 'Failed to logout' });
   }
@@ -358,7 +369,7 @@ export const logoutAllDevices = async (req: AuthRequest, res: Response): Promise
       message: 'Logged out from all devices successfully',
       revokedCount: result.modifiedCount,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('LogoutAllDevices error:', error);
     res.status(500).json({ error: 'Failed to logout from all devices' });
   }
@@ -382,7 +393,7 @@ export const getActiveSessions = async (req: AuthRequest, res: Response): Promis
       .sort({ 'securityInfo.lastUsedAt': -1 });
 
     res.status(200).json({
-      sessions: activeSessions.map(session => ({
+      sessions: activeSessions.map((session) => ({
         id: session._id,
         device: session.deviceInfo,
         lastUsed: session.securityInfo.lastUsedAt,
@@ -391,7 +402,7 @@ export const getActiveSessions = async (req: AuthRequest, res: Response): Promis
         createdAt: session.createdAt,
       })),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetActiveSessions error:', error);
     res.status(500).json({ error: 'Failed to get active sessions' });
   }
@@ -422,7 +433,7 @@ export const revokeSession = async (req: AuthRequest, res: Response): Promise<vo
     await session.save();
 
     res.status(200).json({ message: 'Session revoked successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('RevokeSession error:', error);
     res.status(500).json({ error: 'Failed to revoke session' });
   }
@@ -453,7 +464,7 @@ export const validateToken = async (req: AuthRequest, res: Response): Promise<vo
         role: user.role,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('ValidateToken error:', error);
     res.status(500).json({ error: 'Failed to validate token' });
   }
@@ -461,7 +472,7 @@ export const validateToken = async (req: AuthRequest, res: Response): Promise<vo
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as AuthRequest).userId;
 
     const user = await User.findById(userId).select('-password');
     if (!user) {
@@ -478,7 +489,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         createdAt: user.createdAt,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GetMe error:', error);
     res.status(500).json({ error: 'Failed to get user' });
   }

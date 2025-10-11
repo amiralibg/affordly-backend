@@ -3,7 +3,6 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ACCESS_TOKEN_EXPIRES_IN = '15m'; // 15 minutes
-const REFRESH_TOKEN_EXPIRES_IN = '30d'; // 30 days
 
 export interface TokenPayload {
   userId: string;
@@ -27,13 +26,4 @@ export const getRefreshTokenExpiryDate = (): Date => {
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from now
   return expiryDate;
-};
-
-// Legacy support - keep for backwards compatibility during migration
-export const generateToken = (payload: TokenPayload): string => {
-  return generateAccessToken(payload);
-};
-
-export const verifyToken = (token: string): TokenPayload => {
-  return verifyAccessToken(token);
 };
