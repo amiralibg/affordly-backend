@@ -1,13 +1,13 @@
 services:
   backend:
     build: .
-    container_name: goldify-api
+    container_name: ganjino-api
     expose:
       - "3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/goldify
+      - MONGODB_URI=mongodb://mongodb:27017/ganjino
       - JWT_SECRET=${JWT_SECRET}
       - GOLD_API_KEY=${GOLD_API_KEY}
       - GOLD_API_URL=${GOLD_API_URL}
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     networks:
       - proxy-network
-      - goldify-network
+      - ganjino-network
     healthcheck:
       test:
         [
@@ -33,7 +33,7 @@ services:
 
   mongodb:
     image: mongo:4.4
-    container_name: goldify-db
+    container_name: ganjino-db
     expose:
       - "27017"
     volumes:
@@ -41,9 +41,9 @@ services:
       - mongodb-logs:/var/log/mongodb
     restart: unless-stopped
     networks:
-      - goldify-network
+      - ganjino-network
     environment:
-      - MONGO_INITDB_DATABASE=goldify
+      - MONGO_INITDB_DATABASE=ganjino
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -56,7 +56,7 @@ volumes:
   mongodb-logs:
 
 networks:
-  goldify-network:
+  ganjino-network:
     driver: bridge
 
   proxy-network:

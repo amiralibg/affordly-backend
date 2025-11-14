@@ -5,16 +5,16 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Goldify API',
+      title: 'Ganjino API',
       version: '1.0.0',
-      description: 'API documentation for Goldify - A savings goal tracking application',
+      description: 'API documentation for Ganjino (گنجینو) - A savings goal tracking application',
       contact: {
         name: 'API Support',
       },
     },
     servers: [
       {
-        url: 'https://goldify-api.amiralibg.xyz',
+        url: 'https://ganjino-api.amiralibg.xyz',
         description: 'Production server',
       },
       {

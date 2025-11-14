@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "ganjino-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Ganjino (گنجینو) - Backend API for savings goal tracker",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
